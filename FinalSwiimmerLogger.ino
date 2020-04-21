@@ -1,3 +1,6 @@
+// This program is designed to collect data from gps module and temp sensor while swimming
+
+
 #include <TinyGPS++.h>
 #include <SoftwareSerial.h>
 #include <OneWire.h>
@@ -7,12 +10,8 @@
 #define cardSelect 4
 
 File logfile;
-/*
-   This sample sketch demonstrates the normal use of a TinyGPS++ (TinyGPSPlus) object.
-   It requires the use of SoftwareSerial, and assumes that you have a
-   4800-baud serial GPS device hooked up on pins 4(rx) and 3(tx).
-*/
-static const int RXPin = 10, TXPin = 11;
+
+static const int RXPin = 10, TXPin = 11;//These are the software serial pins
 static const uint32_t GPSBaud = 9600;
 float timerNow = 0.0;
 // The TinyGPS++ object
@@ -20,7 +19,7 @@ TinyGPSPlus gps;
 
 // The serial connection to the GPS device
 SoftwareSerial ss(RXPin, TXPin);
-#define ONE_WIRE_BUS 9
+#define ONE_WIRE_BUS 9 //This is the pin where you attach the data output from your one wire sensor
 
 // Setup a oneWire instance to communicate with any OneWire devices
 OneWire oneWire(ONE_WIRE_BUS);
@@ -36,7 +35,7 @@ if (!SD.begin(cardSelect)) {
     Serial.println("Card init. failed!");
     
   }
-  char filename[15];
+  char filename[15]; //Creates a new sd card file for everytime you turn your logger on
   strcpy(filename, "/ANALOG00.TXT");
   for (uint8_t i = 0; i < 100; i++) {
     filename[7] = '0' + i/10;
@@ -56,11 +55,7 @@ if (!SD.begin(cardSelect)) {
   Serial.print("Writing to "); 
   Serial.println(filename);
 
-  Serial.println(F("DeviceExample.ino"));
-  Serial.println(F("A simple demonstration of TinyGPS++ with an attached GPS module"));
-  Serial.print(F("Testing TinyGPS++ library v. ")); Serial.println(TinyGPSPlus::libraryVersion());
-  Serial.println(F("by Mikal Hart"));
-  Serial.println();
+  
   timerNow = millis();
 }
 
@@ -68,10 +63,11 @@ void loop()
 {
   while (ss.available() > 0)
     if (gps.encode(ss.read()))
+       //set this for whatever sample time you want -- currently every ten seconds 
   if( millis() - timerNow > 10000 ){
     timerNow = millis();
-    displayInfo();
-    displayTemp();
+    displayInfo(); //Display function for GPS data 
+    displayTemp(); //Display and SD card save for temp data
   }
  
 }
@@ -120,7 +116,7 @@ void displayInfo()
   {
     Serial.print(F("INVALID"));
   }
-
+//If  you want to rig this data for the SD card follow example above
   Serial.print(F(" "));
   if (gps.time.isValid())
   {
@@ -146,7 +142,6 @@ void displayInfo()
 void displayTemp(){
    sensors.requestTemperatures(); 
   Serial.print("Celsius temperature: ");
-  // Why "byIndex"? You can have more than one IC on the same bus. 0 refers to the first IC on the wire
   Serial.print(sensors.getTempCByIndex(0)); 
   Serial.print(" - Fahrenheit temperature: ");
   Serial.println(sensors.getTempFByIndex(0));
